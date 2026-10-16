@@ -4,47 +4,147 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Punascharan — Learn by Repetition &amp; Recall</title>
-  <meta name="description" content="A rotating learning carousel mixing quick review with active recall across data science, ML, PyTorch, Karl Storz, and AI.">
+  <meta name="description" content="Study decks of definition, active-retrieval and quiz cards with spaced-repetition scheduling. Import and export decks as JSON.">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="site-header">
     <div class="brand">Punascharan</div>
-    <button id="theme-toggle" class="ghost" type="button" aria-label="Toggle dark mode">◐</button>
+    <nav class="tabs" aria-label="Views">
+      <button type="button" data-view="study" aria-current="page">Study</button>
+      <button type="button" data-view="decks">Decks</button>
+    </nav>
+    <button id="theme-toggle" class="ghost small" type="button" aria-label="Toggle dark mode">◐</button>
   </header>
 
   <main>
+    <!-- ================= STUDY ================= -->
+    <section id="view-study">
+      <section id="carousel" class="carousel" data-type="empty" role="region" aria-roledescription="carousel" aria-label="Study cards" tabindex="-1">
+        <div class="carousel-top">
+          <span id="slide-kind" class="kind"></span>
+          <span id="slide-topic" class="topic-tag"></span>
+        </div>
 
-    <section id="carousel" class="carousel" role="region" aria-roledescription="carousel" aria-label="Learning carousel" tabindex="-1">
-      <div class="carousel-top">
-        <span id="slide-kind" class="kind"></span>
-        <span id="slide-topic" class="topic-tag"></span>
+        <div id="stage" class="stage" aria-live="polite"></div>
+
+        <div class="controls">
+          <button id="prev" class="ghost" type="button" aria-label="Previous card">‹</button>
+          <div id="ratings" class="ratings" role="group" aria-label="How well did you know this?"></div>
+          <button id="next" class="ghost" type="button" aria-label="Next card">›</button>
+        </div>
+      </section>
+
+      <div class="study-toolbar">
+        <fieldset class="topics" id="deck-filters">
+          <legend class="sr-only">Decks to study</legend>
+        </fieldset>
+        <span id="study-stats" class="stats"></span>
       </div>
-
-      <div id="stage" class="stage"></div>
-
-      <div class="progress" aria-hidden="true"><div id="progress-bar"></div></div>
-
-      <div class="controls">
-        <button id="prev" class="ghost" type="button" aria-label="Previous slide">‹</button>
-        <button id="toggle" class="primary" type="button" aria-label="Pause" data-state="playing">
-          <svg class="i-pause" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="6" y="5" width="4.5" height="14" rx="1.2"/><rect x="13.5" y="5" width="4.5" height="14" rx="1.2"/></svg>
-          <svg class="i-play" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>
-        </button>
-        <button id="next" class="ghost" type="button" aria-label="Next slide">›</button>
-        <div id="dots" class="dots" aria-hidden="true"></div>
-      </div>
+      <p class="hint">Shortcuts: ← → move · Space show answer · 1–4 pick a choice, then rate (Again, Hard, Medium, Very Easy).</p>
     </section>
 
-
-    <fieldset class="topics" id="topic-filters">
-      <legend class="sr-only">Topics to include</legend>
-    </fieldset>
-
-    <p class="hint">Shortcuts: ← → navigate · Space pause/play · R reveal answer. Hover or focus pauses automatically.</p>
+    <!-- ================= DECKS ================= -->
+    <section id="view-decks" hidden>
+      <div id="decks-root"></div>
+    </section>
   </main>
 
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- Card editor -->
+  <dialog id="card-dialog">
+    <form id="card-form" novalidate>
+      <h2 id="card-dialog-title">New card</h2>
+      <div class="row">
+        <label>Type
+          <select name="type">
+            <option value="definition">Definition</option>
+            <option value="retrieval">Active retrieval</option>
+            <option value="quiz">Quiz (multiple choice)</option>
+          </select>
+        </label>
+        <label>Deck <select name="deckId"></select></label>
+      </div>
+
+      <div data-for="definition">
+        <label>Term <input name="term" maxlength="200" required></label>
+        <label>Definition <textarea name="definition" rows="3" required></textarea></label>
+        <label>Note (optional) <textarea name="note" rows="2"></textarea></label>
+      </div>
+
+      <div data-for="retrieval" hidden>
+        <label>Question <textarea name="question" rows="2" required></textarea></label>
+        <label>Answer <textarea name="answer" rows="3" required></textarea></label>
+        <label>Formula or code (optional) <textarea name="code" rows="3" class="mono"></textarea></label>
+      </div>
+
+      <div data-for="quiz" hidden>
+        <label>Question <textarea name="qquestion" rows="2" required></textarea></label>
+        <label>Choices (one per line, 2–8) <textarea name="choices" rows="4" required></textarea></label>
+        <label>Number of the correct choice <input name="correct" type="number" min="1" max="8" value="1" required></label>
+        <label>Explanation (optional) <textarea name="explanation" rows="2"></textarea></label>
+      </div>
+
+      <label>Tags (comma separated) <input name="tags" placeholder="e.g. normalization, preprocessing"></label>
+      <p id="card-error" class="error" role="alert"></p>
+      <div class="dialog-actions">
+        <button type="button" class="btn" data-close>Cancel</button>
+        <button type="submit" class="btn primary-btn">Save card</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Deck editor -->
+  <dialog id="deck-dialog">
+    <form id="deck-form" novalidate>
+      <h2 id="deck-dialog-title">New deck</h2>
+      <label>Title <input name="title" maxlength="120" required></label>
+      <label>Description <textarea name="description" rows="2" maxlength="500"></textarea></label>
+      <label>Accent color <input name="color" type="color" value="#3b5bdb"></label>
+      <p id="deck-error" class="error" role="alert"></p>
+      <div class="dialog-actions">
+        <button type="button" class="btn" data-close>Cancel</button>
+        <button type="submit" class="btn primary-btn">Save deck</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Import -->
+  <dialog id="import-dialog">
+    <form id="import-form" novalidate>
+      <h2>Import decks</h2>
+      <label>Choose a .json file <input id="import-file" type="file" accept=".json,application/json"></label>
+      <label>…or paste JSON <textarea id="import-text" rows="6" class="mono"></textarea></label>
+      <fieldset class="radios">
+        <legend>If a deck with the same id exists</legend>
+        <label><input type="radio" name="mode" value="merge" checked> Update it (merge cards)</label>
+        <label><input type="radio" name="mode" value="copy"> Import as a separate copy</label>
+      </fieldset>
+      <p id="import-error" class="error" role="alert"></p>
+      <div class="dialog-actions">
+        <button type="button" class="btn" data-close>Cancel</button>
+        <button type="submit" class="btn primary-btn">Import</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Confirm -->
+  <dialog id="confirm-dialog">
+    <form method="dialog">
+      <p id="confirm-msg"></p>
+      <div class="dialog-actions">
+        <button class="btn" value="cancel">Cancel</button>
+        <button id="confirm-ok" class="btn danger-btn" value="ok">Delete</button>
+      </div>
+    </form>
+  </dialog>
+
   <script src="content.js"></script>
+  <script src="seed.js"></script>
+  <script src="srs.js"></script>
+  <script src="store.js"></script>
+  <script src="io.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
