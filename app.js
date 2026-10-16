@@ -1,6 +1,6 @@
 (() => {
-  const SPATIAL_PER_CYCLE = 4;      // spatial slides before each retrieval slide
-  const SPATIAL_MS = 7000;          // dwell time on a spatial slide
+  const REVIEW_PER_CYCLE = 4;      // review slides before each retrieval slide
+  const REVIEW_MS = 7000;          // dwell time on a review slide
   const QUESTION_MS = 6000;         // time to think before the answer is revealed
   const ANSWER_MS = 12000;          // time the answer stays up
   const TICK_MS = 100;
@@ -43,7 +43,7 @@
     filters.append(label);
   }
 
-  // ---- deck: N spatial slides, then 1 retrieval slide, repeating
+  // ---- deck: N review slides, then 1 retrieval slide, repeating
   const shuffle = (a) => {
     a = a.slice();
     for (let i = a.length - 1; i > 0; i--) {
@@ -64,12 +64,12 @@
   }
 
   function buildDeck() {
-    const spatial = interleave(SPATIAL.filter((s) => enabled.has(s.topic)).map((s) => ({ ...s, kind: "spatial" })));
+    const review = interleave(REVIEW.filter((s) => enabled.has(s.topic)).map((s) => ({ ...s, kind: "review" })));
     const retrieval = interleave(RETRIEVAL.filter((r) => enabled.has(r.topic)).map((r) => ({ ...r, kind: "retrieval" })));
     const deck = [];
     let r = 0;
-    for (let i = 0; i < spatial.length; i += SPATIAL_PER_CYCLE) {
-      deck.push(...spatial.slice(i, i + SPATIAL_PER_CYCLE));
+    for (let i = 0; i < review.length; i += REVIEW_PER_CYCLE) {
+      deck.push(...review.slice(i, i + REVIEW_PER_CYCLE));
       if (retrieval.length) deck.push(retrieval[r++ % retrieval.length]);
     }
     if (!deck.some((s) => s.kind === "retrieval") && retrieval.length) deck.push(retrieval[0]);
@@ -86,7 +86,7 @@
     return n;
   };
 
-  const duration = (s) => (s.kind === "retrieval" ? QUESTION_MS + ANSWER_MS : SPATIAL_MS);
+  const duration = (s) => (s.kind === "retrieval" ? QUESTION_MS + ANSWER_MS : REVIEW_MS);
 
   function renderDots() {
     dotsEl.replaceChildren(...deck.map((s, i) => el("span", `dot ${s.kind === "retrieval" ? "retrieval" : ""} ${i === index ? "active" : ""}`)));
@@ -105,12 +105,11 @@
     revealed = false;
     elapsed = 0;
     carousel.dataset.kind = slide.kind;
-    $("slide-kind").textContent = slide.kind === "retrieval" ? "Active recall" : "Spatial repetition";
+    $("slide-kind").textContent = slide.kind === "retrieval" ? "Active recall" : "Review";
     $("slide-topic").textContent = TOPICS[slide.topic].label;
-    $("slide-count").textContent = `${index + 1} / ${deck.length}`;
 
     const node = el("article", `slide ${direction === "back" ? "back" : ""}`);
-    if (slide.kind === "spatial") {
+    if (slide.kind === "review") {
       node.append(el("h2", "term", slide.term), el("p", "def", slide.def));
       if (slide.note) node.append(el("p", "note", slide.note));
     } else {
@@ -164,7 +163,7 @@
 
   function syncPauseUI() {
     const p = userPaused;
-    toggleBtn.textContent = p ? "Play" : "Pause";
+    toggleBtn.dataset.state = p ? "paused" : "playing";
     toggleBtn.setAttribute("aria-label", p ? "Play" : "Pause");
     // Only announce slide changes politely when the user is in control.
     stage.setAttribute("aria-live", p ? "polite" : "off");

@@ -1,4 +1,4 @@
-// Learning content. Edit freely: add entries to SPATIAL / RETRIEVAL and the carousel picks them up.
+// Learning content. Edit freely: add entries to REVIEW / RETRIEVAL and the carousel picks them up.
 // topic ids must exist in TOPICS.
 
 window.TOPICS = {
@@ -12,8 +12,8 @@ window.TOPICS = {
   harness: { label: "Harness" },
 };
 
-// Spatial repetition: short term + definition (+ optional "why it matters").
-window.SPATIAL = [
+// Review: short term + definition (+ optional "why it matters").
+window.REVIEW = [
   // ---- Data Science
   { topic: "ds", term: "Min-max normalization", def: "Rescales a feature to a fixed range, usually [0, 1], using its observed minimum and maximum.", note: "Sensitive to outliers: one extreme value squashes everyone else." },
   { topic: "ds", term: "Standardization (z-score)", def: "Centers a feature at mean 0 with standard deviation 1: z = (x − μ) / σ.", note: "Preferred when features are roughly Gaussian or the model assumes centered inputs." },

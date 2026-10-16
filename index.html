@@ -4,30 +4,21 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Punascharan — Learn by Repetition &amp; Recall</title>
-  <meta name="description" content="A rotating learning carousel mixing spatial repetition with active retrieval across data science, ML, PyTorch, Karl Storz, and AI.">
+  <meta name="description" content="A rotating learning carousel mixing quick review with active recall across data science, ML, PyTorch, Karl Storz, and AI.">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="site-header">
-    <div class="brand">Punascharan <span>· repeat · recall · retain</span></div>
+    <div class="brand">Punascharan</div>
     <button id="theme-toggle" class="ghost" type="button" aria-label="Toggle dark mode">◐</button>
   </header>
 
   <main>
-    <section class="intro">
-      <h1>Learn it once. See it again. Then prove it.</h1>
-      <p>Short definitions keep concepts familiar. Every few slides, a question makes you recall before the answer appears.</p>
-    </section>
-
-    <fieldset class="topics" id="topic-filters">
-      <legend class="sr-only">Topics to include</legend>
-    </fieldset>
 
     <section id="carousel" class="carousel" role="region" aria-roledescription="carousel" aria-label="Learning carousel" tabindex="-1">
       <div class="carousel-top">
         <span id="slide-kind" class="kind"></span>
         <span id="slide-topic" class="topic-tag"></span>
-        <span id="slide-count" class="count"></span>
       </div>
 
       <div id="stage" class="stage"></div>
@@ -36,18 +27,22 @@
 
       <div class="controls">
         <button id="prev" class="ghost" type="button" aria-label="Previous slide">‹</button>
-        <button id="toggle" class="primary" type="button" aria-label="Pause">Pause</button>
+        <button id="toggle" class="primary" type="button" aria-label="Pause" data-state="playing">
+          <svg class="i-pause" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="6" y="5" width="4.5" height="14" rx="1.2"/><rect x="13.5" y="5" width="4.5" height="14" rx="1.2"/></svg>
+          <svg class="i-play" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>
+        </button>
         <button id="next" class="ghost" type="button" aria-label="Next slide">›</button>
         <div id="dots" class="dots" aria-hidden="true"></div>
       </div>
     </section>
 
+
+    <fieldset class="topics" id="topic-filters">
+      <legend class="sr-only">Topics to include</legend>
+    </fieldset>
+
     <p class="hint">Shortcuts: ← → navigate · Space pause/play · R reveal answer. Hover or focus pauses automatically.</p>
   </main>
-
-  <footer>
-    <p>Karl Storz content is a study aid based on general public knowledge. Confirm product names, indications, and claims against official, current company materials before customer use.</p>
-  </footer>
 
   <script src="content.js"></script>
   <script src="app.js"></script>
